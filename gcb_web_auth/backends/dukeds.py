@@ -3,7 +3,6 @@ from ddsc.core.ddsapi import DataServiceApi, DataServiceAuth
 from ddsc.config import Config
 from requests.exceptions import HTTPError
 from ..models import DukeDSAPIToken
-from d4s2_api.models import DukeDSUser
 from gcb_web_auth.models import DukeDSSettings
 from django.core.exceptions import ObjectDoesNotExist
 from jwt import decode, InvalidTokenError
@@ -86,20 +85,6 @@ def load_dukeds_token(user):
     return user.dukedsapitoken
 
 
-def save_dukeds_user(user, raw_user_dict):
-    """
-    :param user: A django model user
-    :param raw_user_dict: user details from DukeDS API, including their id
-    :return: The created or updated DukeDSUser object
-    """
-    user_dict = DukeDSAuthBackend.harmonize_dukeds_user_details(raw_user_dict)
-    dukeds_user, created = DukeDSUser.objects.get_or_create(user=user,
-                                                            dds_id=raw_user_dict.get('id'))
-    if created:
-        BaseBackend.update_model(dukeds_user, user_dict)
-    return dukeds_user
-
-
 class DukeDSAuthBackend(BaseBackend):
     """
     Backend for DukeDS Auth
@@ -174,5 +159,13 @@ class DukeDSAuthBackend(BaseBackend):
 
         # 4. Have a user, save their token
         if self.save_tokens: save_dukeds_token(user, token)
-        if self.save_dukeds_users: save_dukeds_user(user, user_dict)
+        if self.save_dukeds_users: self.save_dukeds_user(user, user_dict)
         return user
+
+    def save_dukeds_user(self, user, raw_user_dict):
+        """
+        Stub method to allow overriding saving DukeDS user
+        :param user: A django model user
+        :param raw_user_dict: user details from DukeDS API, including their id
+        """
+        pass
