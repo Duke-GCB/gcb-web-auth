@@ -1,0 +1,2 @@
+include LICENSE
+recursive-include gcb_web_auth/templates *
