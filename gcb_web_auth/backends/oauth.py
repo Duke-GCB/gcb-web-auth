@@ -29,4 +29,14 @@ class OAuth2Backend(BaseBackend):
             logger.error('Exception getting user details', e)
             return None
         user = self.save_user(details)
+        self.handle_new_user(user, details)
         return user
+
+    def handle_new_user(self, user, details):
+        """
+        Stub method to allow custom behavior for new OAuth users
+        :param user: A django user, created after receiving OAuth details
+        :param details: A dictionary of OAuth user info
+        :return: None
+        """
+        pass

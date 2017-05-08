@@ -91,9 +91,7 @@ class DukeDSAuthBackend(BaseBackend):
     Conveniently, the keys used by DukeDS user objects are a superset of the django ones,
     so we rely on the filtering in the base class
     """
-    def __init__(self, save_tokens=True, save_dukeds_users=True):
-        self.save_tokens = save_tokens
-        self.save_dukeds_users = save_dukeds_users
+    def __init__(self):
         self.failure_reason = None
 
     def harmonize_user_details(self, details):
@@ -158,13 +156,13 @@ class DukeDSAuthBackend(BaseBackend):
         user = self.save_user(user_dict, False)
 
         # 4. Have a user, save their token
-        if self.save_tokens: save_dukeds_token(user, token)
-        if self.save_dukeds_users: self.save_dukeds_user(user, user_dict)
+        save_dukeds_token(user, token)
+        self.handle_new_user(user, user_dict)
         return user
 
-    def save_dukeds_user(self, user, raw_user_dict):
+    def handle_new_user(self, user, details):
         """
-        Stub method to allow overriding saving DukeDS user
+        Stub method to allow custom behavior for new DukeDS users
         :param user: A django model user
         :param raw_user_dict: user details from DukeDS API, including their id
         """
