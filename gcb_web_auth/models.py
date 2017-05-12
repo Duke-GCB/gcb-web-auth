@@ -7,7 +7,7 @@ import json
 class OAuthService(models.Model):
     name = models.CharField(max_length=64, null=False, blank=False, unique=True)
     client_id = models.CharField(max_length=64, null=False, blank=False)
-    client_secret = models.CharField(null=False, blank=False)
+    client_secret = models.CharField(max_length=1024, null=False, blank=False)
     authorization_uri = models.URLField(null=False, blank=False)
     token_uri = models.URLField(null=False, blank=False)
     resource_uri = models.URLField(null=False, blank=False)
