@@ -1,4 +1,4 @@
-from ..oauth_utils import *
+from ..utils import user_details_from_token, OAuthException
 from .base import BaseBackend
 import logging
 

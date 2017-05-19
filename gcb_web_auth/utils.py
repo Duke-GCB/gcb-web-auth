@@ -1,12 +1,25 @@
 from __future__ import print_function
 import requests
 from ddsc.core.ddsapi import ContentType
+from ddsc.config import Config
 from requests_oauthlib import OAuth2Session
 from gcb_web_auth.models import OAuthToken, OAuthService, DukeDSAPIToken, DukeDSSettings
-from gcb_web_auth.backends.dukeds import check_jwt_token, InvalidTokenError, save_dukeds_token
+from jwt import decode, InvalidTokenError
+from django.core.exceptions import ObjectDoesNotExist
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def check_jwt_token(token):
+    """
+    Uses PyJWT to parse and verify the token expiration
+    :param token: A JWT token to check
+    :return: The decoded token, or raises if invalid/expired
+    """
+    # jwt.decode will verify the expiration date of the token
+    # We won't have the secret so we can't verify the signature, but we should verify everything else
+    return decode(token, options={'verify_signature': False})
 
 
 def make_oauth_session(oauth_service):
@@ -202,6 +215,72 @@ def get_dds_token(user):
     dds_token_json = get_dds_token_from_oauth(oauth_token)
     dds_token = save_dukeds_token(user, dds_token_json['api_token'])
     return dds_token
+
+
+def get_local_user(token):
+    """
+    Given a token, find a user that matches it
+    :param token: An API token to search for in the local store
+    :return: A DukeDSAPIToken object if one found, otherwise
+    """
+    try:
+        local_token = get_local_token(token)
+        return local_token.user
+    except ObjectDoesNotExist as e:
+        return None
+
+
+def get_local_token(token):
+    """
+    Given a JWT token, get the corresponding DukeDSAPIToken object, may raise ObjectDoesNotExist
+    :param token: a token string
+    :return: A DukeDSAPIToken object
+    """
+    return DukeDSAPIToken.objects.get(key=token)
+
+
+def make_auth_config(token):
+    """
+    Returns a DukeDS config object populated with URL and such
+    from this application's django settings
+    :param token: The authorization token for DukeDS
+    :return: a ddsc.config.Config
+    """
+    config = Config()
+    duke_ds_settings = DukeDSSettings.objects.first()
+    config.update_properties({
+        Config.URL: duke_ds_settings.url,
+    })
+    config.values[Config.AUTH] = token
+    return config
+
+
+def save_dukeds_token(user, token):
+    """
+    Saves a DukeDSAPIToken object containing the provided token for the specified user
+    :param user: A django User
+    :param token: the token text to save
+    :return: The newly created token
+    """
+    remove_invalid_dukeds_tokens(user)
+    return DukeDSAPIToken.objects.create(user=user, key=token)
+
+
+def remove_invalid_dukeds_tokens(user):
+    """
+    Examines a user's DukeDSAPITokens, removing any that are invalid JWTs (e.g. expired)
+    :param user: a django User
+    :return: None
+    """
+    for token in DukeDSAPIToken.objects.filter(user=user):
+        try:
+            check_jwt_token(token.key)
+        except InvalidTokenError as e:
+            token.delete()
+
+
+def load_dukeds_token(user):
+    return user.dukedsapitoken
 
 
 def main():

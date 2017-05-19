@@ -4,7 +4,7 @@ from mock.mock import patch, MagicMock, Mock
 from .backends import OAuth2Backend, DukeDSAuthBackend
 from .backends.dukeds import remove_invalid_dukeds_tokens
 from .backends.base import BaseBackend
-from .tests_oauth_utils import make_oauth_service
+from .tests_utils import make_oauth_service
 from django.contrib.auth import get_user_model
 from .models import DukeDSAPIToken, DukeDSSettings
 from jwt import InvalidTokenError
