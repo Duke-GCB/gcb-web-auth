@@ -1,7 +1,7 @@
 from .base import BaseBackend
 from ddsc.core.ddsapi import DataServiceApi, DataServiceAuth
 from requests.exceptions import HTTPError
-from ..oauth_utils import check_jwt_token, get_local_user, make_auth_config, save_dukeds_token
+from ..utils import check_jwt_token, get_local_user, make_auth_config, save_dukeds_token
 from jwt import InvalidTokenError
 
 class DukeDSAuthBackend(BaseBackend):

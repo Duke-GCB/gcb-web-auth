@@ -1,10 +1,11 @@
 from django.shortcuts import render
-from .oauth_utils import *
+from .utils import *
 from .models import OAuthService, OAuthState
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
+
 
 def get_service(request):
     # TODO: Return a different service if necessary
