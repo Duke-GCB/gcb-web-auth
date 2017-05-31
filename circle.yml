@@ -1,0 +1,5 @@
+test:
+  pre:
+    - pip install -r devRequirements.txt
+  override:
+    - ./runtests.sh
