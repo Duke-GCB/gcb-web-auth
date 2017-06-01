@@ -1,7 +1,8 @@
 from rest_framework import authentication
 from rest_framework import exceptions
 from django.utils.translation import ugettext_lazy as _
-from .backends.dukeds import get_local_token, DukeDSAuthBackend
+from .utils import get_local_token
+from .backends.dukeds import DukeDSAuthBackend
 
 
 class DukeDSTokenAuthentication(authentication.BaseAuthentication):
