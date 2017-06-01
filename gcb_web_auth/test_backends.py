@@ -2,7 +2,7 @@ from django.test import TestCase
 from mock.mock import patch, MagicMock, Mock
 
 from .backends import OAuth2Backend, DukeDSAuthBackend
-from .backends.dukeds import remove_invalid_dukeds_tokens
+from .utils import remove_invalid_dukeds_tokens
 from .backends.base import BaseBackend
 from .tests_utils import make_oauth_service
 from django.contrib.auth import get_user_model
@@ -73,7 +73,7 @@ class DukeDSAuthBackendTestCase(TestCase):
 
     def setUp(self):
         # Patch the jwt decode function everwherywhere
-        jwt_decode_patcher = patch('gcb_web_auth.backends.dukeds.decode')
+        jwt_decode_patcher = patch('gcb_web_auth.utils.decode')
         self.mock_jwt_decode = jwt_decode_patcher.start()
         self.addCleanup(jwt_decode_patcher.stop)
 
@@ -106,15 +106,19 @@ class DukeDSAuthBackendTestCase(TestCase):
         self.assertFalse(self.mock_dataservice_auth.called, 'Should not instantiate a dataservice auth when token already exists')
 
     def test_calls_dukeds_for_unrecognized_token(self):
+        handle_new_user_details = []
+        def handle_new_user(user, details):
+            handle_new_user_details.append(details)
         key = 'unrecognized'
         DukeDSSettings.objects.create(url='', portal_root='', openid_provider_id='')
         self.assertEqual(DukeDSAPIToken.objects.filter(key=key).count(), 0, 'Should not have a token with this key')
         mock_get_current_user = MagicMock(return_value=MagicMock(json=MagicMock(return_value=self.details)))
         self.mock_dataservice_api.return_value.get_current_user = mock_get_current_user
+        self.dukeds_backend.handle_new_user = handle_new_user
         authenticated_user = self.dukeds_backend.authenticate(key)
         self.assertEqual(authenticated_user.username, self.details['username'] + '@duke.edu', msg='Should populate username and append @duke.edu')
         self.assertEqual(authenticated_user.email, self.details['email'], 'Should populate email')
-        self.assertEqual(authenticated_user.dukedsuser.dds_id, self.details['id'], 'Should create a dukeds user and populate it with id')
+        self.assertEqual(handle_new_user_details, [self.details], 'Should call handle_new_user and pass our details')
         self.assertEqual(authenticated_user.first_name, self.details['first_name'], 'Should populate first name')
         self.assertEqual(authenticated_user.last_name, self.details['last_name'], 'Should populate last name')
         self.assertTrue(mock_get_current_user.called, 'Should call get_current_user to get user details')
