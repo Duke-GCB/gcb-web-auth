@@ -1,0 +1,7 @@
+deployment:
+  production:
+    branch: pypi
+    commands:
+     - python setup.py bdist_wheel --universal
+     - pip install twine
+     - twine upload --username "${PYPI_USERNAME}" --password "${PYPI_PASSWORD}" dist/*
