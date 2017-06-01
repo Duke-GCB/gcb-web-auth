@@ -1,6 +1,6 @@
 deployment:
   production:
-    branch: pypi
+    branch: master
     commands:
      - python setup.py bdist_wheel --universal
      - pip install twine
