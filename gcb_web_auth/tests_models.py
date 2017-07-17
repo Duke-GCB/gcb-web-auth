@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.test.testcases import TestCase
 
-from .models import OAuthToken, OAuthService
+from .models import OAuthToken, OAuthService, GroupManagerConnection
 
 
 class OAuthTokenTest(TestCase):
@@ -69,4 +69,15 @@ class OAuthTokenTest(TestCase):
         self.assertEqual(t.token_json, self.token_json)
 
 
-
+class GroupManagerConnectionTest(TestCase):
+    def test_create_and_read(self):
+        self.assertEqual(0, len(GroupManagerConnection.objects.all()),
+                         "There should be no connections by default")
+        gmc = GroupManagerConnection.objects.create(account_id='123', password='abc')
+        self.assertIsNotNone(gmc.base_url,
+                             "Base url should have a default value")
+        gmc = GroupManagerConnection.objects.first()
+        self.assertEqual(gmc.account_id, 123,
+                         "GroupManagerConnection should save account_id as an integer")
+        self.assertEqual(gmc.password, 'abc',
+                         "GroupManagerConnection should save password")
