@@ -2,12 +2,24 @@ from django.test import TestCase
 from mock.mock import patch, MagicMock, Mock
 
 from .backends import OAuth2Backend, DukeDSAuthBackend
+from .backends.oauth import MISSING_GROUP_MANAGER_SETUP, USER_NOT_IN_GROUP_FMT
 from .utils import remove_invalid_dukeds_tokens
 from .backends.base import BaseBackend
 from .tests_utils import make_oauth_service
 from django.contrib.auth import get_user_model
-from .models import DukeDSAPIToken, DukeDSSettings
+from django.core.exceptions import PermissionDenied
+from .models import DukeDSAPIToken, DukeDSSettings, GroupManagerConnection
 from jwt import InvalidTokenError
+
+
+
+class OAuth2GroupManagerBackend(OAuth2Backend):
+    """
+    Sample Backend that checks that a user belongs to 'supergroup1'
+    """
+    def check_user_details(self, details):
+        duke_unique_id = details['dukeUniqueID']
+        self.verify_user_belongs_to_group(duke_unique_id, 'supergroup1')
 
 
 class OAuth2BackendTestCase(TestCase):
@@ -67,6 +79,35 @@ class OAuth2BackendTestCase(TestCase):
         self.assertEqual(user.pk, orig_user_pk, 'Should update existing user')
         self.assertEqual(user.first_name, self.details.get('given_name'), 'Updates first name')
         self.assertEqual(user.email, self.details.get('email'), 'Updates email')
+
+    @patch('gcb_web_auth.backends.oauth.user_details_from_token')
+    def tests_authenticate_group_manager_missing_setup(self, mock_user_details_from_token):
+        mock_user_details_from_token.return_value = self.details
+        oauth_backend = OAuth2GroupManagerBackend()
+        with self.assertRaises(PermissionDenied) as raised_error:
+            oauth_backend.authenticate()
+        self.assertEqual(str(raised_error.exception), MISSING_GROUP_MANAGER_SETUP)
+
+    @patch('gcb_web_auth.backends.oauth.user_details_from_token')
+    @patch('gcb_web_auth.backends.oauth.user_belongs_to_group')
+    def tests_authenticate_group_manager_not_in_group(self, mock_user_belongs_to_group, mock_user_details_from_token):
+        mock_user_belongs_to_group.return_value = False
+        GroupManagerConnection.objects.create(account_id='123', password='secret')
+        mock_user_details_from_token.return_value = self.details
+        oauth_backend = OAuth2GroupManagerBackend()
+        with self.assertRaises(PermissionDenied) as raised_error:
+            oauth_backend.authenticate()
+        self.assertEqual(str(raised_error.exception), USER_NOT_IN_GROUP_FMT.format('supergroup1'))
+
+    @patch('gcb_web_auth.backends.oauth.user_details_from_token')
+    @patch('gcb_web_auth.backends.oauth.user_belongs_to_group')
+    def tests_authenticate_group_manager_in_group(self, mock_user_belongs_to_group, mock_user_details_from_token):
+        mock_user_belongs_to_group.return_value = True
+        GroupManagerConnection.objects.create(account_id='123', password='secret')
+        mock_user_details_from_token.return_value = self.details
+        oauth_backend = OAuth2GroupManagerBackend()
+        user = oauth_backend.authenticate()
+        self.assertIsNotNone(user, 'Should have user')
 
 
 class DukeDSAuthBackendTestCase(TestCase):
