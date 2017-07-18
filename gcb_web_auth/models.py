@@ -61,3 +61,16 @@ class DukeDSSettings(models.Model):
     url = models.URLField(null=False, blank=False)
     portal_root = models.URLField(null=False, blank=False)
     openid_provider_id = models.CharField(max_length=64, null=False, blank=False)
+
+
+class GroupManagerConnection(models.Model):
+    """
+    Settings used to check users GroupManager groups (this is a singleton object)
+    """
+    base_url = models.CharField(max_length=255, null=False, blank=False,
+                                default="https://groups.oit.duke.edu/grouper-ws/servicesRest/json/v2_1_500",
+                                help_text="base grouper url")
+    account_id = models.IntegerField(null=False, blank=False,
+                                     help_text="duke unique id to use to connect to grouper")
+    password = models.CharField(max_length=255, null=False, blank=False,
+                                help_text="password associated with account_id")
