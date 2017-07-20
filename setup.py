@@ -9,8 +9,14 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='gcb-web-auth',
-    version='0.5',
+    version='0.6',
     packages=find_packages(),
+    install_requires=[
+        'DukeDSClient==0.3.16',
+        'PyJWT==1.5.2',
+        'requests==2.18.1',
+        'requests-oauthlib==0.8.0',
+    ],
     include_package_data=True,
     license='MIT License',
     description='Django app to integrate Duke OAuth for use in GCB.'
