@@ -85,7 +85,7 @@ class OAuthUtilsTest(TestCase):
         self.assertTrue(mock_make_oauth_session.post.called_with(self.service.resource_uri), 'Posts to resource URI')
 
     @patch('gcb_web_auth.utils.revoke_token')
-    def test_updates_existing_token_and_revokes(self, mock_revoke_token):
+    def test_updates_existing_token(self, mock_revoke_token):
         service = make_oauth_service(OAuthService, save=True)
         user = get_user_model().objects.create(username='user123')
         token_dict1 = {'access_token': 'aaaaa1'}
@@ -96,8 +96,7 @@ class OAuthUtilsTest(TestCase):
         t2_id, t2_token = t2.id, t2.token_dict
         self.assertEqual(t1_id, t2_id, 'Token should be updated with same id')
         self.assertNotEqual(t1_token, t2_token, 'Token data have been updated')
-        self.assertTrue(mock_revoke_token.called_with(t1), 'Should have revoked t1')
-        self.assertEqual(mock_revoke_token.call_count, 1, 'Should revoke once')
+        self.assertFalse(mock_revoke_token.called, 'Should not revoke any tokens')
 
     @patch('gcb_web_auth.utils.requests')
     def test_revoke_token(self, mock_client):

@@ -105,17 +105,9 @@ class OAuthException(BaseException):
 
 
 def save_token(oauth_service, token_dict, user):
+    # If we already have an OAuthToken for this user, update it
     token, created = OAuthToken.objects.get_or_create(user=user,
                                                       service=oauth_service)
-    # If a token already existed we must revoke the old one
-    if not created:
-        try:
-            revoke_token(token)
-        except OAuthException as e:
-            logger.warn('Unable to revoke token, proceeding to save: {}'.format(e))
-        token.token_dict = {}
-        token.save()
-    # Either way, save the current token
     token.token_dict = token_dict
     token.save()
     return token
