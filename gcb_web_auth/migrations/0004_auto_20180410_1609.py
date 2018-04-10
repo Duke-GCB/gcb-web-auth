@@ -14,8 +14,8 @@ def dds_settings_to_endpoints(apps, schema_editor):
             name=dds_settings.url,
             api_root=dds_settings.url,
             agent_key='', # Not previously mandatory
-            portal_root=settings.portal_root,
-            openid_provider_id=settings.openid_provider_id
+            portal_root=dds_settings.portal_root,
+            openid_provider_id=dds_settings.openid_provider_id
         )
 
 
