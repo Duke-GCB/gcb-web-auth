@@ -6,6 +6,29 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 
+def dds_settings_to_endpoints(apps, schema_editor):
+    DukeDSSettings = apps.get_model('gcb_web_auth', 'DukeDSSettings')
+    DDSEndpoint = apps.get_model('gcb_web_auth', 'DDSEndpoint')
+    for dds_settings in DukeDSSettings.objects.all():
+        DDSEndpoint.objects.create(
+            name=dds_settings.url,
+            api_root=dds_settings.url,
+            agent_key='', # Not previously mandatory
+            portal_root=settings.portal_root,
+            openid_provider_id=settings.openid_provider_id
+        )
+
+
+def dds_endpoints_to_settings(apps, schema_editor):
+    DukeDSSettings = apps.get_model('gcb_web_auth', 'DukeDSSettings')
+    DDSEndpoint = apps.get_model('gcb_web_auth', 'DDSEndpoint')
+    for endpoint in DDSEndpoint.objects.all():
+        DukeDSSettings.objects.create(
+            url=endpoint.api_root,
+            portal_root=endpoint.portal_root,
+            openid_provider_id=settings.openid_provider_id
+        )
+
 
 class Migration(migrations.Migration):
 
@@ -36,6 +59,7 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
+        migrations.RunPython(dds_settings_to_endpoints, reverse_code=dds_endpoints_to_settings),
         migrations.DeleteModel(
             name='DukeDSSettings',
         ),
