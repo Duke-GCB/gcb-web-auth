@@ -2,9 +2,10 @@ import json
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 from django.test.testcases import TestCase
 
-from .models import OAuthToken, OAuthService, GroupManagerConnection
+from .models import OAuthToken, OAuthService, GroupManagerConnection, DDSEndpoint, DDSUserCredential
 
 
 class OAuthTokenTest(TestCase):
@@ -81,3 +82,64 @@ class GroupManagerConnectionTest(TestCase):
                          "GroupManagerConnection should save account_id as an integer")
         self.assertEqual(gmc.password, 'abc',
                          "GroupManagerConnection should save password")
+
+
+class DDSEndpointTestCase(TestCase):
+
+    def test_unique_name(self):
+        DDSEndpoint.objects.create(name='name1')
+        with self.assertRaises(IntegrityError):
+            DDSEndpoint.objects.create(name='name1')
+
+    def test_unique_agent_key(self):
+        DDSEndpoint.objects.create(agent_key='key1')
+        with self.assertRaises(IntegrityError):
+            DDSEndpoint.objects.create(agent_key='key1')
+
+    def test_validates_blank_fields(self):
+        endpoint = DDSEndpoint.objects.create()
+        with self.assertRaises(ValidationError) as e:
+            endpoint.clean_fields()
+        error_keys = e.exception.error_dict.keys()
+        self.assertSetEqual(set(error_keys),
+                            {'name','agent_key','portal_root','api_root','openid_provider_id'})
+
+
+class DDSUserCredentialTestCase(TestCase):
+
+    def setUp(self):
+        self.endpoint = DDSEndpoint.objects.create(name='endpoint1',
+                                                   api_root='https://example.org/api',
+                                                   portal_root='https://example.org',
+                                                   openid_provider_id='abc123',
+                                                   agent_key='dds123')
+        User = get_user_model()
+        self.user1 = User.objects.create(username='user1')
+        self.user2 = User.objects.create(username='user2')
+
+    def test_creates_with_user_and_endpoint(self):
+        DDSUserCredential.objects.create(user=self.user1, endpoint=self.endpoint)
+
+    def test_requires_user_relationship(self):
+        with self.assertRaises(IntegrityError) as e:
+            DDSUserCredential.objects.create(user=None, endpoint=self.endpoint)
+
+    def test_requires_endpoint_relationship(self):
+        with self.assertRaises(IntegrityError) as e:
+            DDSUserCredential.objects.create(user=self.user1, endpoint=None)
+
+    def test_unique_token(self):
+        DDSUserCredential.objects.create(user=self.user1, endpoint=self.endpoint, token='token1')
+        with self.assertRaises(IntegrityError):
+            DDSUserCredential.objects.create(user=self.user1, endpoint=self.endpoint, token='token1')
+
+    def test_unique_dds_id(self):
+        DDSUserCredential.objects.create(user=self.user1, endpoint=self.endpoint, dds_id='dds_id1')
+        with self.assertRaises(IntegrityError):
+            DDSUserCredential.objects.create(user=self.user1, endpoint=self.endpoint, dds_id='dds_id1')
+
+    def test_unique_endpoint_and_user(self):
+        DDSUserCredential.objects.create(endpoint=self.endpoint, user=self.user1, dds_id='dds_id1', token='token1')
+        DDSUserCredential.objects.create(endpoint=self.endpoint, user=self.user2, dds_id='dds_id2', token='token2')
+        with self.assertRaises(IntegrityError):
+            DDSUserCredential.objects.create(endpoint=self.endpoint, user=self.user1, dds_id='dds_id3', token='token3')
