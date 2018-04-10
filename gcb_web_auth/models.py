@@ -73,7 +73,7 @@ class DDSEndpoint(models.Model):
     """
     name = models.CharField(max_length=255, unique=True)
     agent_key = models.CharField(max_length=32, unique=True)
-    # Formerly url in DDSSettings
+    # Formerly url in DukeDSSettings
     api_root = models.URLField(help_text="Base API URL for data service instance, "
                                          "e.g. https://api.dataservice.duke.edu/api/v1")
     portal_root = models.URLField("Base Web URL for data service isntance, "
