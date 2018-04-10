@@ -54,15 +54,6 @@ class DukeDSAPIToken(models.Model):
     key = models.TextField(unique=True, blank=False, null=False) # Opaque here, but JWT in practice
 
 
-class DukeDSSettings(models.Model):
-    """
-    Singleton that contains settings for DukeDS integration 
-    """
-    url = models.URLField(null=False, blank=False)
-    portal_root = models.URLField(null=False, blank=False)
-    openid_provider_id = models.CharField(max_length=64, null=False, blank=False)
-
-
 class GroupManagerConnection(models.Model):
     """
     Settings used to check users GroupManager groups (this is a singleton object)
@@ -74,3 +65,39 @@ class GroupManagerConnection(models.Model):
                                      help_text="duke unique id to use to connect to grouper")
     password = models.CharField(max_length=255, null=False, blank=False,
                                 help_text="password associated with account_id")
+
+
+class DDSEndpoint(models.Model):
+    """
+    References a Duke Data Service instance as well as the agent key we're using
+    """
+    name = models.CharField(max_length=255, unique=True)
+    agent_key = models.CharField(max_length=32, unique=True)
+    # Formerly url in DDSSettings
+    api_root = models.URLField(help_text="Base API URL for data service instance, "
+                                         "e.g. https://api.dataservice.duke.edu/api/v1")
+    portal_root = models.URLField("Base Web URL for data service isntance, "
+                                  "e.g. https://dataservice.duke.edu")
+    openid_provider_id = models.CharField(max_length=64,
+                                          help_text="The Provider ID of the OpenID provider registered "
+                                                    "with data service")
+
+    def __unicode__(self):
+        return '{} - {}'.format(self.name, self.api_root, )
+
+
+class DDSUserCredential(models.Model):
+    """
+    Contains Duke Data Service credentials for a django user
+    """
+    endpoint = models.ForeignKey(DDSEndpoint, on_delete=models.CASCADE)
+    user = models.ForeignKey(User)
+    token = models.CharField(max_length=32, unique=True)
+    dds_id = models.CharField(max_length=255, unique=True)
+
+    class Meta:
+        unique_together = ('endpoint', 'user',)
+
+    def __unicode__(self):
+        return '{} - {}'.format(self.endpoint, self.user, )
+
