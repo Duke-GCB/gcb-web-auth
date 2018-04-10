@@ -13,7 +13,7 @@ def dds_settings_to_endpoints(apps, schema_editor):
         DDSEndpoint.objects.create(
             name=dds_settings.url,
             api_root=dds_settings.url,
-            agent_key='', # Not previously mandatory
+            agent_key='00000000000000000000000000000000', # Not mandatory for OAuth exchange but encouraged
             portal_root=dds_settings.portal_root,
             openid_provider_id=dds_settings.openid_provider_id
         )
