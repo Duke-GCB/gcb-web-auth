@@ -3,7 +3,7 @@ import requests
 from ddsc.core.ddsapi import ContentType
 from ddsc.config import Config
 from requests_oauthlib import OAuth2Session
-from gcb_web_auth.models import OAuthToken, OAuthService, DukeDSAPIToken, DukeDSSettings
+from gcb_web_auth.models import OAuthToken, OAuthService, DukeDSAPIToken, DDSEndpoint
 from jwt import decode, InvalidTokenError
 from django.core.exceptions import ObjectDoesNotExist
 import logging
@@ -172,8 +172,8 @@ def get_dds_token_from_oauth(oauth_token):
     :param oauth_token: An OAuthToken object
     :return: The dictionary from JSON returned by the /user/api_token endpoint
     """
-    duke_ds_settings = DukeDSSettings.objects.first()
-    authentication_service_id = duke_ds_settings.openid_provider_id
+    endpoint = DDSEndpoint.objects.first()
+    authentication_service_id = endpoint.openid_provider_id
     headers = {
         'Content-Type': ContentType.json,
     }
@@ -183,7 +183,7 @@ def get_dds_token_from_oauth(oauth_token):
         "access_token": access_token,
         "authentication_service_id": authentication_service_id,
     }
-    url = duke_ds_settings.url + "/user/api_token"
+    url = endpoint.api_root + "/user/api_token"
     response = requests.get(url, headers=headers, params=data)
     try:
         response.raise_for_status()
@@ -239,9 +239,9 @@ def make_auth_config(token):
     :return: a ddsc.config.Config
     """
     config = Config()
-    duke_ds_settings = DukeDSSettings.objects.first()
+    endpoint = DDSEndpoint.objects.first()
     config.update_properties({
-        Config.URL: duke_ds_settings.url,
+        Config.URL: endpoint.api_root,
     })
     config.values[Config.AUTH] = token
     return config

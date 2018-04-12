@@ -8,7 +8,7 @@ from .backends.base import BaseBackend
 from .tests_utils import make_oauth_service
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
-from .models import DukeDSAPIToken, DukeDSSettings, GroupManagerConnection
+from .models import DukeDSAPIToken, DDSEndpoint, GroupManagerConnection
 from jwt import InvalidTokenError
 
 
@@ -151,7 +151,7 @@ class DukeDSAuthBackendTestCase(TestCase):
         def handle_new_user(user, details):
             handle_new_user_details.append(details)
         key = 'unrecognized'
-        DukeDSSettings.objects.create(url='', portal_root='', openid_provider_id='')
+        DDSEndpoint.objects.create(api_root='', portal_root='', openid_provider_id='')
         self.assertEqual(DukeDSAPIToken.objects.filter(key=key).count(), 0, 'Should not have a token with this key')
         mock_get_current_user = MagicMock(return_value=MagicMock(json=MagicMock(return_value=self.details)))
         self.mock_dataservice_api.return_value.get_current_user = mock_get_current_user
