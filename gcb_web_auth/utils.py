@@ -13,6 +13,11 @@ logger = logging.getLogger(__name__)
 
 
 def get_default_dds_endpoint():
+    """
+    Get the default DDSEndpoint object, or raise DDSConfigurationException
+    if none found
+    :return: A DDSEndpoint object
+    """
     endpoint = DDSEndpoint.objects.first()
     if not endpoint:
         raise DDSConfigurationException('No DDSEndpoint is configured')
@@ -20,6 +25,11 @@ def get_default_dds_endpoint():
 
 
 def get_default_oauth_service():
+    """
+    Get the default OAuthService object, or raise OAuthConfigurationException
+    if none found
+    :return: An OAuthService object
+    """
     service = OAuthService.objects.first()
     if not service:
         raise OAuthConfigurationException('No OAuthService is configured')
