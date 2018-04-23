@@ -1,7 +1,8 @@
 from django.test import TestCase
-from mock.mock import patch, MagicMock, Mock
+from mock.mock import patch, MagicMock, Mock, call
 from django.contrib.auth import get_user_model
 from .utils import *
+from .models import DDSUserCredential
 from django.contrib.auth.models import User
 
 
@@ -169,3 +170,65 @@ class OAuthTokenUtilTestCase(TestCase):
                                                 token_json='{"access_token":"g2jo83lmvasijgq"}')
         with self.assertRaises(NoTokenException):
             get_dds_token_from_oauth(oauth_token)
+
+
+class DefaultEndpointsTestCase(TestCase):
+
+    def test_gets_default_dds_endpoint(self):
+        endpoint = DDSEndpoint.objects.create(api_root='', portal_root='', openid_provider_id='')
+        default = get_default_dds_endpoint()
+        self.assertEqual(endpoint, default)
+
+    def test_raises_when_no_dds_endpoint(self):
+        self.assertEqual(DDSEndpoint.objects.count(), 0)
+        with self.assertRaises(DDSConfigurationException) as e:
+            get_default_dds_endpoint()
+
+    def test_gets_default_oauth_service(self):
+        service = OAuthService.objects.create()
+        default = get_default_oauth_service()
+        self.assertEqual(service, default)
+
+    def test_raises_when_no_oauth_service(self):
+        self.assertEqual(OAuthService.objects.count(), 0)
+        with self.assertRaises(OAuthConfigurationException) as e:
+            get_default_oauth_service()
+
+
+class DDSConfigTestCase(TestCase):
+
+    def setUp(self):
+        self.endpoint = DDSEndpoint.objects.create(api_root='https://api.example.org/v1',
+                                                   agent_key='agent-key-123',
+                                                   portal_root='https://example.org',
+                                                   openid_provider_id='openid-provider-id-456')
+        self.user = User.objects.create(username='test_user')
+        self.credentials = DDSUserCredential.objects.create(user=self.user,
+                                                            endpoint=self.endpoint,
+                                                            token='token-789',
+                                                            dds_id='dds-id-888')
+
+    @patch('gcb_web_auth.utils.Config')
+    def test_create_config_for_endpoint(self, mock_config):
+        config = create_config_for_endpoint(self.endpoint)
+        self.assertEqual(config, mock_config.return_value)
+        self.assertEqual(mock_config.call_count, 1)
+        mock_update_properties = mock_config.return_value.update_properties
+        self.assertEqual(mock_update_properties.call_count, 2)
+        expected_calls = [
+            call({'agent_key':'agent-key-123'}),
+            call({'url':'https://api.example.org/v1'})
+        ]
+        self.assertEqual(mock_update_properties.mock_calls, expected_calls)
+
+    @patch('gcb_web_auth.utils.create_config_for_endpoint')
+    def test_get_dds_config_for_credentials(self, mock_config):
+        config = get_dds_config_for_credentials(self.credentials)
+        self.assertEqual(config, mock_config.return_value)
+        self.assertEqual(mock_config.call_count, 1)
+        mock_update_properties = mock_config.return_value.update_properties
+        self.assertEqual(mock_update_properties.call_count, 1)
+        expected_calls = [
+            call({'user_key':'token-789'})
+        ]
+        self.assertEqual(mock_update_properties.mock_calls, expected_calls)
