@@ -129,7 +129,7 @@ class OAuthTokenUtilTestCase(TestCase):
         DDSEndpoint.objects.create(api_root='', portal_root='', openid_provider_id='')
 
     @patch('gcb_web_auth.utils.check_jwt_token')
-    def gcb_web_auth(self, mock_check_jwt_token):
+    def test_gcb_web_auth(self, mock_check_jwt_token):
         mock_check_jwt_token.return_value = True
         local_token = get_local_dds_token(self.user)
         self.assertEqual(local_token.key, 'some-token', 'Should return token when check passes')
