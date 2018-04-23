@@ -178,7 +178,7 @@ def get_dds_token_from_oauth(oauth_token):
     :param oauth_token: An OAuthToken object
     :return: The dictionary from JSON returned by the /user/api_token endpoint
     """
-    endpoint = get_default_ddsendpoint()
+    endpoint = get_default_dds_endpoint()
     authentication_service_id = endpoint.openid_provider_id
     headers = {
         'Content-Type': ContentType.json,
