@@ -6,9 +6,34 @@ from requests_oauthlib import OAuth2Session
 from gcb_web_auth.models import OAuthToken, OAuthService, DukeDSAPIToken, DDSEndpoint
 from jwt import decode, InvalidTokenError
 from django.core.exceptions import ObjectDoesNotExist
+from gcb_web_auth.exceptions import *
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def get_default_dds_endpoint():
+    """
+    Get the default DDSEndpoint object, or raise DDSConfigurationException
+    if none found
+    :return: A DDSEndpoint object
+    """
+    endpoint = DDSEndpoint.objects.first()
+    if not endpoint:
+        raise DDSConfigurationException('No DDSEndpoint is configured')
+    return endpoint
+
+
+def get_default_oauth_service():
+    """
+    Get the default OAuthService object, or raise OAuthConfigurationException
+    if none found
+    :return: An OAuthService object
+    """
+    service = OAuthService.objects.first()
+    if not service:
+        raise OAuthConfigurationException('No OAuthService is configured')
+    return service
 
 
 def check_jwt_token(token):
@@ -100,10 +125,6 @@ def fetch_user_details(oauth_service, session):
         raise OAuthException(e)
 
 
-class OAuthException(BaseException):
-    pass
-
-
 def save_token(oauth_service, token_dict, user):
     # If we already have an OAuthToken for this user, update it
     token, created = OAuthToken.objects.get_or_create(user=user,
@@ -130,17 +151,13 @@ def revoke_token(token):
         raise OAuthException(e)
 
 
-class NoTokenException(BaseException):
-    pass
-
-
 def get_oauth_token(user):
     """
     Gets the OAuth token object for the specified user, and refreshes if needed
     :param user:
     :return:
     """
-    service = OAuthService.objects.first()
+    service = get_default_oauth_service()
     try:
         current_user_details(service, user)
     except OAuthException as e:
@@ -165,14 +182,13 @@ def get_local_dds_token(user):
 
     return None
 
-
 def get_dds_token_from_oauth(oauth_token):
     """
     Presents an OAuth token to DukeDS, obtaining an api_token
     :param oauth_token: An OAuthToken object
     :return: The dictionary from JSON returned by the /user/api_token endpoint
     """
-    endpoint = DDSEndpoint.objects.first()
+    endpoint = get_default_dds_endpoint()
     authentication_service_id = endpoint.openid_provider_id
     headers = {
         'Content-Type': ContentType.json,
@@ -239,7 +255,7 @@ def make_auth_config(token):
     :return: a ddsc.config.Config
     """
     config = Config()
-    endpoint = DDSEndpoint.objects.first()
+    endpoint = get_default_dds_endpoint()
     config.update_properties({
         Config.URL: endpoint.api_root,
     })
@@ -271,12 +287,32 @@ def remove_invalid_dukeds_tokens(user):
             token.delete()
 
 
-def load_dukeds_token(user):
-    return user.dukedsapitoken
+def create_config_for_endpoint(endpoint_cred):
+    """
+    Given a dds endpoint create ddsclient Config object filling in agent key and api root.
+    The returned config still requires user_key or auth to be filled in.
+    :param endpoint_cred: DDSEndpoint: endpoint to create agent and api root config
+    :return: ddsc.config.Config: settings to use with ddsclient
+    """
+    config = Config()
+    config.update_properties({'agent_key': endpoint_cred.agent_key})
+    config.update_properties({'url': endpoint_cred.api_root})
+    return config
+
+
+def get_dds_config_for_credentials(user_cred):
+    """
+    Given a DukeDS user credential object create complete Config for use with ddsc
+    :param user_cred: DDSUserCredential: user credential to create config based upon
+    :return: ddsc.config.Config: settings to use with ddsclient
+    """
+    config = create_config_for_endpoint(user_cred.endpoint)
+    config.update_properties({'user_key': user_cred.token})
+    return config
 
 
 def main():
-    duke_service = OAuthService.objects.first()
+    duke_service = get_default_oauth_service()
     auth_url, state = authorization_url(duke_service)
     print('Please go to {} and authorize access'.format(auth_url))
     authorization_response = raw_input('Enter the full callback URL: ')
