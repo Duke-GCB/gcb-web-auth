@@ -11,8 +11,8 @@ urlpatterns = [
     url(r'^home/$', views.home, name='auth-home'),
     url(r'^unconfigured/$', TemplateView.as_view(template_name='gcb_web_auth/unconfigured.html'), name='auth-unconfigured'),
     # JSON Web Token endpoints
-    url(r'^api-token-auth/', obtain_jwt_token),
-    url(r'^api-token-refresh/', refresh_jwt_token),
-    url(r'^api-token-verify/', verify_jwt_token),
-    url(r'^api-token-session/', session_jwt_token),
+    url(r'^api-token-auth/', obtain_jwt_token, name='auth-api-token-auth'),
+    url(r'^api-token-refresh/', refresh_jwt_token, name='auth-api-token-refresh'),
+    url(r'^api-token-verify/', verify_jwt_token, name='auth-api-token-verify'),
+    url(r'^api-token-session/', session_jwt_token, name='auth-api-token-session'),
 ]

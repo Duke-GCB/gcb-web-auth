@@ -10,6 +10,7 @@ from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 
+
 class SessionObtainJSONWebTokenAPIView(APIView):
     """
     Allow session-authenticated users to get a JSON web token
@@ -24,5 +25,6 @@ class SessionObtainJSONWebTokenAPIView(APIView):
         serializer = VerifyJSONWebTokenSerializer(data={'token': token})
         serializer.is_valid()
         return Response(serializer.data)
+
 
 session_jwt_token = SessionObtainJSONWebTokenAPIView.as_view()
