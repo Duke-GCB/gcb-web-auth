@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from requests.auth import HTTPBasicAuth
 from django.conf import settings
-from rest_framework.authentication import BasicAuthentication
+
 
 class JWTViewsTestCase(APITestCase):
 
@@ -18,7 +18,6 @@ class JWTViewsTestCase(APITestCase):
         self.assertIn('rest_framework.authentication.BasicAuthentication', settings.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'])
         user = get_user_model().objects.create(username='user', password='pass')
         self.client.auth = HTTPBasicAuth('user', 'pass')
-        # TODO: Verify the credentials would otherwise be valid or update test to use JWT
         response = self.client.post(reverse('auth-api-token-session'), {})
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.data["detail"], "Authentication credentials were not provided.")
