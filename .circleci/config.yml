@@ -7,7 +7,7 @@ workflows:
       - test-2.7
   release:
     jobs:
-      - release
+      - release:
           filters:
             tags:
               only: /.*/
