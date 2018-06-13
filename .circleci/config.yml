@@ -12,14 +12,14 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps-{{ .Environment.circleJob }}-{{ .Branch }}-{{ checksum "setup.py" }}-{{ checksum "devRequirements.txt" }}
+          key: deps-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}-{{ checksum "devRequirements.txt" }}
       - run:
           command: |
             virtualenv venv
             source venv/bin/activate
             pip install -r devRequirements.txt
       - save_cache:
-          key: deps-{{ .Environment.circleJob }}-{{ .Branch }}-{{ checksum "setup.py" }}-{{ checksum "devRequirements.txt" }}
+          key: deps-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}-{{ checksum "devRequirements.txt" }}
           paths:
             - "venv"
       - run:
