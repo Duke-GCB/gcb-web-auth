@@ -1,0 +1,32 @@
+version: 2
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test-3.6
+      - test-2.7
+jobs:
+  test-3.6: &test-template
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}-{{ checksum "devRequirements.txt" }}
+      - run:
+          command: |
+            virtualenv venv
+            source venv/bin/activate
+            pip install -r devRequirements.txt
+      - save_cache:
+          key: deps-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}-{{ checksum "devRequirements.txt" }}
+          paths:
+            - "venv"
+      - run:
+          command: |
+            source venv/bin/activate
+            ./runtests.sh
+  test-2.7:
+    <<: *test-template
+    docker:
+      - image: circleci/python:2.7
