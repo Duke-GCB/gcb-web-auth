@@ -1,20 +1,25 @@
 version: 2
 workflows:
   version: 2
-  test:
+  test-and-release:
     jobs:
-      - test-3.6
-      - test-2.7
-  release:
-    jobs:
+      - test-3.6:
+          filters:
+            tags:
+              only: /.*/
+      - test-2.7:
+          filters:
+            tags:
+              only: /.*/
       - release:
           filters:
             tags:
               only: /.*/
+            branches:
+              ignore: /.*/
           requires:
             - test-3.6
             - test-2.7
-
 jobs:
   test-3.6: &test-template
     docker:
