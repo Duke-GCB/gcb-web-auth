@@ -1,3 +1,14 @@
+# This CircleCI config uses a workflow to test on 2 versions of python and upload releases to PyPI
+#
+# The test-and-release workflow runs the following jobs:
+# 1. test-3.6 - test tags and branches under Python 3.6
+# 2. test-2.7 - test tags and branches under Python 2.7
+# 3. release - after both test jobs succeed, upload to PyPi for tags (but not for branches).
+#
+# Note that the test jobs have a tags filter. This is because the release job
+# (which depends on the test jobs and needs a tag filter) wouldn't run unless its dependencies
+# also had tag filters (even if they didn't exclude anything)
+
 version: 2
 workflows:
   version: 2
