@@ -89,9 +89,10 @@ class DDSEndpoint(models.Model):
                                      help_text='Set this to the default DDSEndpoint. There can be only one default')
 
     def save(self, *args, **kwargs):
-        default_count = DDSEndpoint.objects.filter(is_default=True).count()
-        if self.pk is None and self.is_default:
-            # This object has no pk - is new and not yet counted.
+        default_queryset = DDSEndpoint.objects.filter(is_default=True)
+        default_count = default_queryset.count()
+        if self not in default_queryset and self.is_default:
+            # This is a new object or the field is changing
             default_count = default_count + 1
         if default_count > 1:
             raise ValidationError('Attempting to save default a DDSEndpoint, for a total of {}. There should be 1'.format(default_count))
