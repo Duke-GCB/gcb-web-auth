@@ -127,7 +127,7 @@ class OAuthTokenUtilTestCase(TestCase):
         self.user_id = 'abcd-1234-efgh-8876'
         self.token = DukeDSAPIToken.objects.create(user=self.user, key='some-token')
         self.oauth_service = OAuthService.objects.create(name="Test Service")
-        DDSEndpoint.objects.create(api_root='', portal_root='', openid_provider_service_id='')
+        DDSEndpoint.objects.create(api_root='', portal_root='', openid_provider_service_id='', is_default=True)
 
     @patch('gcb_web_auth.utils.check_jwt_token')
     def test_gcb_web_auth(self, mock_check_jwt_token):
@@ -175,7 +175,7 @@ class OAuthTokenUtilTestCase(TestCase):
 class DefaultEndpointsTestCase(TestCase):
 
     def test_gets_default_dds_endpoint(self):
-        endpoint = DDSEndpoint.objects.create(api_root='', portal_root='', openid_provider_service_id='')
+        endpoint = DDSEndpoint.objects.create(api_root='', portal_root='', openid_provider_service_id='', is_default=True)
         default = get_default_dds_endpoint()
         self.assertEqual(endpoint, default)
 

@@ -18,8 +18,9 @@ def get_default_dds_endpoint():
     if none found
     :return: A DDSEndpoint object
     """
-    endpoint = DDSEndpoint.objects.first()
-    if not endpoint:
+    try:
+        endpoint = DDSEndpoint.default_endpoint()
+    except DDSEndpoint.DoesNotExist:
         raise DDSConfigurationException('No DDSEndpoint is configured')
     return endpoint
 

@@ -142,6 +142,11 @@ class DDSEndpointTestCase(TestCase):
         self.assertFalse(endpoint1.is_default)
         self.assertTrue(endpoint2.is_default)
 
+    def test_get_default_raises_does_not_exist(self):
+        self.assertEqual(DDSEndpoint.objects.filter(is_default=True).count(), 0)
+        with self.assertRaises(DDSEndpoint.DoesNotExist):
+            DDSEndpoint.default_endpoint()
+
 
 class DDSUserCredentialTestCase(TestCase):
 
