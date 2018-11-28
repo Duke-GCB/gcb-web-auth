@@ -78,9 +78,9 @@ class DDSEndpoint(models.Model):
                                          "e.g. https://api.dataservice.duke.edu/api/v1")
     portal_root = models.URLField("Base Web URL for data service isntance, "
                                   "e.g. https://dataservice.duke.edu")
-    openid_provider_id = models.CharField(max_length=64,
-                                          help_text="The Provider ID of the OpenID provider registered "
-                                                    "with data service")
+    openid_provider_service_id = models.CharField(max_length=64,
+                                                  help_text="The Service ID of the OpenID provider registered "
+                                                  "with data service, required for GET /user/api_token")
 
     def __unicode__(self):
         return '{} - {}'.format(self.name, self.api_root, )
