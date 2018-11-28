@@ -102,7 +102,7 @@ class DDSEndpointTestCase(TestCase):
             endpoint.clean_fields()
         error_keys = e.exception.error_dict.keys()
         self.assertSetEqual(set(error_keys),
-                            {'name','agent_key','portal_root','api_root','openid_provider_id'})
+                            {'name','agent_key','portal_root','api_root','openid_provider_service_id'})
 
     def test_unique_parameters1(self):
         endpoint1 = DDSEndpoint.objects.create(name='endpoint1', agent_key='abc123')
@@ -120,12 +120,12 @@ class DDSUserCredentialTestCase(TestCase):
         self.endpoint1 = DDSEndpoint.objects.create(name='endpoint1',
                                                     api_root='https://example1.org/api',
                                                     portal_root='https://example2.org',
-                                                    openid_provider_id='abc123',
+                                                    openid_provider_service_id='abc123',
                                                     agent_key='dds123')
         self.endpoint2 = DDSEndpoint.objects.create(name='endpoint2',
                                                     api_root='https://example2.org/api',
                                                     portal_root='https://example2.org',
-                                                    openid_provider_id='def456',
+                                                    openid_provider_service_id='def456',
                                                     agent_key='fef332')
         User = get_user_model()
         self.user1 = User.objects.create(username='user1')
