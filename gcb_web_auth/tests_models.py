@@ -102,7 +102,7 @@ class DDSEndpointTestCase(TestCase):
             endpoint.clean_fields()
         error_keys = e.exception.error_dict.keys()
         self.assertSetEqual(set(error_keys),
-                            {'name','agent_key','portal_root','api_root','openid_provider_id'})
+                            {'name','agent_key','portal_root','api_root','openid_provider_service_id', 'openid_provider_id'})
 
     def test_unique_parameters1(self):
         endpoint1 = DDSEndpoint.objects.create(name='endpoint1', agent_key='abc123')
@@ -113,6 +113,40 @@ class DDSEndpointTestCase(TestCase):
         with self.assertRaises(IntegrityError):
             DDSEndpoint.objects.create(name='endpoint3', agent_key=endpoint1.agent_key)
 
+    def test_fails_creating_second_default(self):
+        DDSEndpoint.objects.create(name='endpoint1', agent_key='abc123', is_default=True)
+        with self.assertRaises(ValidationError):
+            DDSEndpoint.objects.create(name='endpoint2', agent_key='abc456', is_default=True)
+
+    def test_fails_updating_second_default(self):
+        DDSEndpoint.objects.create(name='endpoint1', agent_key='abc123', is_default=True)
+        endpoint2 = DDSEndpoint.objects.create(name='endpoint2', agent_key='abc456', is_default=False)
+        endpoint2.is_default = True
+        with self.assertRaises(ValidationError):
+            endpoint2.save()
+
+    def test_default_endpoint(self):
+        endpoint1 = DDSEndpoint.objects.create(name='endpoint1', agent_key='abc123')
+        endpoint2 = DDSEndpoint.objects.create(name='endpoint2', agent_key='def456', is_default=True)
+        self.assertEqual(endpoint2.pk, DDSEndpoint.default_endpoint().pk)
+
+    def test_make_default(self):
+        endpoint1 = DDSEndpoint.objects.create(name='endpoint1', agent_key='abc123', is_default=True)
+        endpoint2 = DDSEndpoint.objects.create(name='endpoint2', agent_key='def456', is_default=False)
+        self.assertTrue(endpoint1.is_default)
+        self.assertFalse(endpoint2.is_default)
+        endpoint2.make_default()
+        # Now reload the objects from the database
+        endpoint1 = DDSEndpoint.objects.get(pk=endpoint1.pk)
+        endpoint2 = DDSEndpoint.objects.get(pk=endpoint2.pk)
+        self.assertFalse(endpoint1.is_default)
+        self.assertTrue(endpoint2.is_default)
+
+    def test_get_default_raises_does_not_exist(self):
+        self.assertEqual(DDSEndpoint.objects.filter(is_default=True).count(), 0)
+        with self.assertRaises(DDSEndpoint.DoesNotExist):
+            DDSEndpoint.default_endpoint()
+
 
 class DDSUserCredentialTestCase(TestCase):
 
@@ -120,12 +154,14 @@ class DDSUserCredentialTestCase(TestCase):
         self.endpoint1 = DDSEndpoint.objects.create(name='endpoint1',
                                                     api_root='https://example1.org/api',
                                                     portal_root='https://example2.org',
-                                                    openid_provider_id='abc123',
+                                                    openid_provider_service_id='abc123',
+                                                    openid_provider_id='prv123',
                                                     agent_key='dds123')
         self.endpoint2 = DDSEndpoint.objects.create(name='endpoint2',
                                                     api_root='https://example2.org/api',
                                                     portal_root='https://example2.org',
-                                                    openid_provider_id='def456',
+                                                    openid_provider_service_id='def456',
+                                                    openid_provider_id='prv456',
                                                     agent_key='fef332')
         User = get_user_model()
         self.user1 = User.objects.create(username='user1')

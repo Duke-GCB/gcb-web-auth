@@ -69,7 +69,7 @@ class DDSEndpointMigrationTestCase(TestMigrations):
           )
 
     def test_dukeds_settings_migrates_to_dds_endpoint(self):
-        DDSEndpoint = apps.get_model('gcb_web_auth', 'DDSEndpoint')
+        DDSEndpoint = self.apps.get_model('gcb_web_auth', 'DDSEndpoint')
         endpoints = DDSEndpoint.objects.all()
         self.assertEqual(len(endpoints), 1)
         endpoint = endpoints[0]

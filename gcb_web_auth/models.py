@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 import json
 
 
@@ -78,9 +79,36 @@ class DDSEndpoint(models.Model):
                                          "e.g. https://api.dataservice.duke.edu/api/v1")
     portal_root = models.URLField("Base Web URL for data service isntance, "
                                   "e.g. https://dataservice.duke.edu")
+    openid_provider_service_id = models.CharField(max_length=64,
+                                                  help_text="The Service ID of the OpenID provider registered "
+                                                  "with data service, required for GET /user/api_token")
     openid_provider_id = models.CharField(max_length=64,
-                                          help_text="The Provider ID of the OpenID provider registered "
-                                                    "with data service")
+                                          help_text='The ID of the OpenID provider registered '
+                                                    'with data service, used for auth provider affiliate lookups')
+    is_default = models.BooleanField(default=False,
+                                     help_text='Set this to the default DDSEndpoint. There can be only one default')
+
+    def save(self, *args, **kwargs):
+        default_queryset = DDSEndpoint.objects.filter(is_default=True)
+        default_count = default_queryset.count()
+        if self not in default_queryset and self.is_default:
+            # This is a new object or the field is changing
+            default_count = default_count + 1
+        if default_count > 1:
+            raise ValidationError('Attempting to save default a DDSEndpoint, for a total of {}. There should be 1'.format(default_count))
+        else:
+            super(DDSEndpoint, self).save(*args, **kwargs)
+
+    @classmethod
+    def default_endpoint(cls):
+        return cls.objects.get(is_default=True)
+
+    def make_default(self):
+        for endpoint in DDSEndpoint.objects.all():
+            endpoint.is_default = False
+            endpoint.save()
+        self.is_default = True
+        self.save()
 
     def __unicode__(self):
         return '{} - {}'.format(self.name, self.api_root, )
