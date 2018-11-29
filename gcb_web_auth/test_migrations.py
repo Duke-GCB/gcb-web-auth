@@ -60,7 +60,6 @@ class DDSEndpointMigrationTestCase(TestMigrations):
     django_application = 'gcb_web_auth'
 
     def setUpBeforeMigration(self, apps):
-        self.apps = apps
         # Create a DukeDSSettings object with its common fields
         DukeDSSettings = apps.get_model('gcb_web_auth','DukeDSSettings')
         DukeDSSettings.objects.create(
