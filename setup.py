@@ -12,9 +12,9 @@ setup(
     version='1.0.1',
     packages=find_packages(),
     install_requires=[
-        'DukeDSClient==1.0.1',
+        'DukeDSClient==2.1.0',
         'PyJWT==1.5.2',
-        'requests==2.18.1',
+        'requests>=2.20.0',
         'requests-oauthlib==0.8.0',
         'djangorestframework-jwt==1.11.0',
     ],
