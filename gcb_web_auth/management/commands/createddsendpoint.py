@@ -17,7 +17,7 @@ class Command(BaseCommand):
         fields = dict()
         for k in {'name','api_root','portal_root','agent_key','openid_provider_id', 'openid_provider_service_id'}:
             fields[k] = options[k]
-            endpoint = DDSEndpoint.objects.filter(name=fields['name'])
+        endpoint = DDSEndpoint.objects.filter(name=fields['name'])
         if endpoint:
             endpoint.update(**fields)
             endpoint = endpoint.first()
