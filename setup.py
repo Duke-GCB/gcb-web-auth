@@ -9,7 +9,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='gcb-web-auth',
-    version='1.1.1',
+    version='1.1.2',
     packages=find_packages(),
     install_requires=[
         'DukeDSClient==2.1.4',
