@@ -12,7 +12,7 @@ setup(
     version='1.1.2',
     packages=find_packages(),
     install_requires=[
-        'DukeDSClient==2.1.4',
+        'DukeDSClient==3.0.0',
         'PyJWT==1.5.2',
         'requests>=2.20.0',
         'requests-oauthlib==0.8.0',
