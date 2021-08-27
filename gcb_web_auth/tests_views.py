@@ -2,7 +2,7 @@ from django.test import TestCase
 from .models import OAuthService, OAuthState
 from mock.mock import patch
 from django.contrib.auth import get_user_model
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from .views import push_state, pop_state, StateException
 from django.test.client import RequestFactory
 
@@ -60,11 +60,6 @@ class OAuthViewsTest(TestCase):
         self.assertFalse(mock_save_token.called, 'save token should not be called when no user returned')
         self.assertRedirects(response, reverse('login'), fetch_redirect_response=False,
                              msg_prefix='Should redirect to login after authorize failure')
-
-    def test_login_page(self):
-        self.client.logout()
-        response = self.client.get(reverse('login'))
-        self.assertContains(response, 'Login', msg_prefix='Login page should be reachable while logged out')
 
     def test_home_requires_login(self):
         self.client.logout()

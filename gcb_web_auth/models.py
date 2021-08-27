@@ -119,7 +119,7 @@ class DDSUserCredential(models.Model):
     Contains Duke Data Service credentials for a django user
     """
     endpoint = models.ForeignKey(DDSEndpoint, on_delete=models.CASCADE)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     token = models.CharField(max_length=32, unique=True)
     dds_id = models.CharField(max_length=255, unique=True)
 
