@@ -35,10 +35,11 @@ class DukeDSAuthBackend(BaseBackend):
         mapping = dict((k, k) for k in ('full_name','email',))
         return BaseBackend.harmonize_dict(mapping,details)
 
-    def authenticate(self, token):
+    def authenticate(self, request=None, token=None):
         """
         Authenticate a user with a DukeDS API token. Returns None if no user could be authenticated,
         and sets the errors list with the reasons
+        :param request: Django Request - Not used, required for Django backend compatibility
         :param token: A JWT token
         :return: an authenticated, populated user if found, or None if not.
         """
