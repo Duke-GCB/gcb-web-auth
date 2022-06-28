@@ -14,7 +14,7 @@
     <p>Please login to see this page.</p>
     {% endif %}
 {% endif %}
-<p>This page is local administrator login only. To login with a Duke NetID, click <a href="{% url 'auth-authorize' %}?next={{ next }}">here</a>.</p>
+<p>This page is local administrator login only. To login with a Duke NetID, click <a href="{% url 'auth-authorize' %}?next={{ next|urlencode }}">here</a>.</p>
 <form method="post" action="{% url 'login' %}">
 {% csrf_token %}
 <table>
@@ -29,6 +29,6 @@
 </table>
 
 <input type="submit" value="login" />
-<input type="hidden" name="next" value="{{ next }}" />
+<input type="hidden" name="next" value="{{ next|urlencode }}" />
 </form>
 {% endblock %}
