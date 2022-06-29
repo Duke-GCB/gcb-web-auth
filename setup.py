@@ -13,7 +13,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'DukeDSClient>=3.0.0',
-        'PyJWT==1.5.2',
+        'PyJWT==2.4.0',
         'requests>=2.20.0',
         'requests-oauthlib==0.8.0',
         'djangorestframework-jwt==1.11.0',
